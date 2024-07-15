@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banners Clicáveis</title>
+    <link rel="manifest" href="#manifest">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -113,5 +114,66 @@
             </a>
         </div>
     </footer>
-</body>
-</html>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+
+        const manifestContent = {
+            name: "Luke Getup Trading Esportivo",
+            short_name: "Luke Trading",
+            description: "Acesse nosso conteúdo sobre trading esportivo.",
+            start_url: "/",
+            display: "standalone",
+            background_color: "#ffffff",
+            theme_color: "#007BFF",
+            icons: [
+                {
+                    src: "https://images.freeimages.com/image/previews/15f/football-emblem-png-5691601.png?fmt=webp&w=500",
+                    sizes: "192x192",
+                    type: "image/png"
+                },
+                {
+                    src: "https://images.freeimages.com/image/previews/15f/football-emblem-png-5691601.png?fmt=webp&w=500",
+                    sizes: "512x512",
+                    type: "image/png"
+                }
+            ]
+        };
+
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = 'data:application/json,' + JSON.stringify(manifestContent);
+        document.head.appendChild(manifest);
+
+        const serviceWorkerScript = `
+            self.addEventListener('install', event => {
+                event.waitUntil(
+                    caches.open('app-cache').then(cache => {
+                        return cache.addAll([
+                            '/',
+                            '/index.html',
+                            '/style.css', // adicione todos os arquivos estáticos necessários
+                            'https://i.pinimg.com/564x/ed/82/cf/ed82cf935259e91c909d700c6cec975c.jpg',
+                            'https://images.freeimages.com/image/previews/15f/football-emblem-png-5691601.png?fmt=webp&w=500'
+                        ]);
+                    })
+                );
+            });
+
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request).then(response => {
+                        return response || fetch(event.request);
+                    })
+                );
+            });
+        `;
+
+        const serviceWorkerBlob = new Blob([serviceWorkerScript], {
