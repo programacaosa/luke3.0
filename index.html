@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banners Clicáveis</title>
-    <link rel="manifest" href="#manifest">
+    <link rel="manifest" href="/manifest.json">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -116,13 +116,15 @@
     </footer>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                })
-                .catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
         }
 
         const manifestContent = {
@@ -147,33 +149,9 @@
             ]
         };
 
-        const manifest = document.createElement('link');
-        manifest.rel = 'manifest';
-        manifest.href = 'data:application/json,' + JSON.stringify(manifestContent);
-        document.head.appendChild(manifest);
-
-        const serviceWorkerScript = `
-            self.addEventListener('install', event => {
-                event.waitUntil(
-                    caches.open('app-cache').then(cache => {
-                        return cache.addAll([
-                            '/',
-                            '/index.html',
-                            '/style.css', // adicione todos os arquivos estáticos necessários
-                            'https://i.pinimg.com/564x/ed/82/cf/ed82cf935259e91c909d700c6cec975c.jpg',
-                            'https://images.freeimages.com/image/previews/15f/football-emblem-png-5691601.png?fmt=webp&w=500'
-                        ]);
-                    })
-                );
-            });
-
-            self.addEventListener('fetch', event => {
-                event.respondWith(
-                    caches.match(event.request).then(response => {
-                        return response || fetch(event.request);
-                    })
-                );
-            });
-        `;
-
-        const serviceWorkerBlob = new Blob([serviceWorkerScript], {
+        const blob = new Blob([JSON.stringify(manifestContent)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(blob);
+        document.querySelector('link[rel="manifest"]').href = manifestURL;
+    </script>
+</body>
+</html>
